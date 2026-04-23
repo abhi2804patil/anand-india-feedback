@@ -34,8 +34,8 @@ export default function Dashboard() {
     let on = true;
     setLoading(true);
     api.listResponses(filters)
-      .then((d) => { if (on) setRawRows(d); })
-      .catch((e) => console.error(e))
+      .then((d) => { if (on) setRawRows(Array.isArray(d) ? d : []); })
+      .catch((e) => { console.error(e); if (on) setRawRows([]); })
       .finally(() => on && setLoading(false));
     return () => { on = false; };
   }, [filters, reloadKey]);
