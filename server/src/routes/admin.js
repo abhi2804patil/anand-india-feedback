@@ -19,6 +19,15 @@ router.get('/seed', async (req, res) => {
   res.json({ ok: true, inserted: rows.length });
 });
 
+router.get('/wipe', async (req, res) => {
+  const token = process.env.SEED_TOKEN;
+  if (!token || req.query.token !== token) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  await repo.replaceAll([]);
+  res.json({ ok: true, message: 'All feedback cleared' });
+});
+
 router.use(requireAuth);
 
 router.get('/responses', async (req, res) => {
