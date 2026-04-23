@@ -35,6 +35,8 @@ export const api = {
     const qs = new URLSearchParams(Object.entries(filters).filter(([, v]) => v));
     return request('/admin/responses' + (qs.toString() ? `?${qs}` : ''));
   },
+  clearAllResponses: () =>
+    request('/admin/responses', { method: 'DELETE' }),
   stats: (filters = {}) => {
     const qs = new URLSearchParams(Object.entries(filters).filter(([, v]) => v));
     return request('/admin/stats' + (qs.toString() ? `?${qs}` : ''));

@@ -30,6 +30,11 @@ router.get('/wipe', async (req, res) => {
 
 router.use(requireAuth);
 
+router.delete('/responses', async (_req, res) => {
+  await repo.replaceAll([]);
+  res.json({ ok: true, message: 'All feedback cleared' });
+});
+
 router.get('/responses', async (req, res) => {
   const { from, to, company } = req.query;
   const rows = await repo.list({ from, to, company });

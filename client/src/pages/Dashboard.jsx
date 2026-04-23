@@ -29,6 +29,7 @@ export default function Dashboard() {
   const [cross, setCross] = useState({});
   const [modalRow, setModalRow] = useState(null);
 
+  const [reloadKey, setReloadKey] = useState(0);
   useEffect(() => {
     let on = true;
     setLoading(true);
@@ -37,7 +38,7 @@ export default function Dashboard() {
       .catch((e) => console.error(e))
       .finally(() => on && setLoading(false));
     return () => { on = false; };
-  }, [filters]);
+  }, [filters, reloadKey]);
 
   // Apply cross-filters client-side.
   const rows = useMemo(() => {
@@ -62,7 +63,7 @@ export default function Dashboard() {
 
   return (
     <div className="flex min-h-full">
-      <Sidebar view={view} setView={setView} />
+      <Sidebar view={view} setView={setView} onCleared={() => setReloadKey((k) => k + 1)} />
       <div className="flex-1 min-w-0">
         <FilterBar
           filters={filters}
