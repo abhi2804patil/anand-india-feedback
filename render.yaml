@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: anand-india-api
+    runtime: node
+    rootDir: server
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_EMAIL
+        value: admin@anandindia.com
+      - key: ADMIN_PASSWORD
+        value: admin123
+      - key: MONGODB_URI
+        sync: false   # Paste your MongoDB Atlas URI in the Render UI
+      - key: CLIENT_ORIGIN
+        sync: false   # Paste your Vercel URL here (e.g. https://anand-india.vercel.app)
