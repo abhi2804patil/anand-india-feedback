@@ -1,7 +1,18 @@
 import { z } from 'zod';
 
-const rating = z.enum(['Excellent', 'Good', 'Average', 'Poor']);
-const ratingNA = z.enum(['Excellent', 'Good', 'Average', 'Poor', 'Not Applicable']);
+const rating = z.enum(['Excellent', 'Good', 'Average', 'Poor'], {
+  required_error: 'Please choose one',
+  invalid_type_error: 'Please choose one',
+});
+const ratingNA = z.enum(['Excellent', 'Good', 'Average', 'Poor', 'Not Applicable'], {
+  required_error: 'Please choose one',
+  invalid_type_error: 'Please choose one',
+});
+const choose = (opts) => z.enum(opts, {
+  required_error: 'Please choose one',
+  invalid_type_error: 'Please choose one',
+});
+const pickMany = z.array(z.string()).min(1, 'Select at least one option');
 
 export const feedbackSchema = z.object({
   date: z.string().optional(),
@@ -10,56 +21,56 @@ export const feedbackSchema = z.object({
   phone: z.string().optional(),
 
   satisfactionScore: z.number().min(1).max(10),
-  wouldRecommend: z.enum(['Yes', 'No']),
+  wouldRecommend: choose(['Yes', 'No']),
   recommendReason: z.string().optional(),
 
-  officeSize: rating.optional(),
-  furnitureComfort: rating.optional(),
+  officeSize: rating,
+  furnitureComfort: rating,
   infraIssues: z.string().optional(),
   improvementSuggestion: z.string().optional(),
 
-  commonAreaCleanliness: rating.optional(),
-  maintenanceSpeed: z.enum(['Very Fast', 'Acceptable', 'Slow']).optional(),
+  commonAreaCleanliness: rating,
+  maintenanceSpeed: choose(['Very Fast', 'Acceptable', 'Slow']),
   recurringProblems: z.string().optional(),
 
-  internetQuality: ratingNA.optional(),
-  powerBackup: rating.optional(),
-  washroom: rating.optional(),
-  pantry: rating.optional(),
+  internetQuality: ratingNA,
+  powerBackup: rating,
+  washroom: rating,
+  pantry: rating,
 
-  noiseDisturbance: z.enum(['Never', 'Sometimes', 'Frequently']).optional(),
-  noiseSources: z.array(z.string()).optional(),
+  noiseDisturbance: choose(['Never', 'Sometimes', 'Frequently']),
+  noiseSources: pickMany,
   noiseSourceOther: z.string().optional(),
 
-  antiSocialBehavior: z.enum(['Yes', 'No']).optional(),
+  antiSocialBehavior: choose(['Yes', 'No']),
   antiSocialDetails: z.string().optional(),
-  comfortableAllHours: z.enum(['Yes', 'No']).optional(),
+  comfortableAllHours: choose(['Yes', 'No']),
 
-  locationRating: rating.optional(),
-  locationChallenges: z.array(z.string()).optional(),
+  locationRating: rating,
+  locationChallenges: pickMany,
   locationChallengeOther: z.string().optional(),
 
-  staffBehavior: rating.optional(),
+  staffBehavior: rating,
   staffFeedback: z.string().optional(),
 
-  rentJustified: z.enum(['Yes', 'No']).optional(),
-  rentVsMarket: z.enum(['High', 'Fair', 'Low']).optional(),
+  rentJustified: choose(['Yes', 'No']),
+  rentVsMarket: choose(['High', 'Fair', 'Low']),
   justifyHigherRent: z.string().optional(),
 
-  managementResponsiveness: rating.optional(),
-  communicationClarity: rating.optional(),
+  managementResponsiveness: rating,
+  communicationClarity: rating,
   managementSuggestions: z.string().optional(),
 
-  continuePlan: z.enum(['Yes', 'No', 'Not Sure']).optional(),
-  futureSpaceSize: z.enum(['Bigger', 'Same', 'Smaller']).optional(),
-  additionalServices: z.array(z.string()).optional(),
+  continuePlan: choose(['Yes', 'No', 'Not Sure']),
+  futureSpaceSize: choose(['Bigger', 'Same', 'Smaller']),
+  additionalServices: pickMany,
   additionalServicesOther: z.string().optional(),
 
   likeMost: z.string().optional(),
   dislikeMost: z.string().optional(),
   ownerChange: z.string().optional(),
 
-  upgradeWillingness: z.enum(['Yes', 'Maybe', 'No']).optional(),
+  upgradeWillingness: choose(['Yes', 'Maybe', 'No']),
 });
 
 export const defaultValues = {
@@ -68,7 +79,6 @@ export const defaultValues = {
   tenantName: '',
   phone: '',
   satisfactionScore: 7,
-  wouldRecommend: 'Yes',
   recommendReason: '',
   noiseSources: [],
   locationChallenges: [],

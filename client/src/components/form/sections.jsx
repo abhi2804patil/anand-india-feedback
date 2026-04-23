@@ -13,6 +13,14 @@ export function SectionHeader({ step, title, subtitle }) {
   );
 }
 
+function err(form, name) {
+  return form.formState.errors?.[name]?.message;
+}
+
+function setVal(form, name, v) {
+  form.setValue(name, v, { shouldValidate: true });
+}
+
 export function HeaderFields({ form, errors }) {
   const { register } = form;
   return (
@@ -35,16 +43,16 @@ export function HeaderFields({ form, errors }) {
 
 // Section 1 — Overall Satisfaction
 export function Section1({ form }) {
-  const { watch, setValue, register } = form;
+  const { watch, register } = form;
   const score = watch('satisfactionScore') ?? 7;
   const recommend = watch('wouldRecommend');
   return (
     <div className="card">
       <SectionHeader step={1} title="Overall Satisfaction" subtitle="A quick temperature check." />
-      <Field label={`Satisfaction: ${score}/10`}>
+      <Field label={`Satisfaction: ${score}/10`} required>
         <input
           type="range" min={1} max={10} step={1} value={score}
-          onChange={(e) => setValue('satisfactionScore', Number(e.target.value))}
+          onChange={(e) => setVal(form, 'satisfactionScore', Number(e.target.value))}
           className="satisfaction"
           style={{ '--pct': `${((score - 1) / 9) * 100}%` }}
         />
@@ -54,17 +62,17 @@ export function Section1({ form }) {
         </div>
       </Field>
       <div className="mt-5">
-        <Field label="Would you recommend this office?" required>
+        <Field label="Would you recommend this office?" required error={err(form, 'wouldRecommend')}>
           <RadioGroup
             options={['Yes', 'No']}
             value={recommend}
-            onChange={(v) => setValue('wouldRecommend', v)}
+            onChange={(v) => setVal(form, 'wouldRecommend', v)}
             columns="grid-cols-2 max-w-xs"
           />
         </Field>
       </div>
       <div className="mt-5">
-        <Field label="Reason">
+        <Field label="Reason (optional)">
           <textarea className="textarea" placeholder="Share a quick reason…" {...register('recommendReason')} />
         </Field>
       </div>
@@ -72,11 +80,10 @@ export function Section1({ form }) {
   );
 }
 
-function RatingRow({ form, name, label }) {
-  const { watch, setValue } = form;
+function RatingRow({ form, name, label, options = RATINGS }) {
   return (
-    <Field label={label}>
-      <RadioGroup options={RATINGS} value={watch(name)} onChange={(v) => setValue(name, v)} />
+    <Field label={label} required error={err(form, name)}>
+      <RadioGroup options={options} value={form.watch(name)} onChange={(v) => setVal(form, name, v)} />
     </Field>
   );
 }
@@ -90,10 +97,10 @@ export function Section2({ form }) {
       <div className="grid gap-5">
         <RatingRow form={form} name="officeSize" label="Office size & layout" />
         <RatingRow form={form} name="furnitureComfort" label="Furniture comfort & sufficiency" />
-        <Field label="Issues with lighting, ventilation, or AC">
+        <Field label="Issues with lighting, ventilation, or AC (optional)">
           <textarea className="textarea" {...register('infraIssues')} />
         </Field>
-        <Field label="One improvement suggestion">
+        <Field label="One improvement suggestion (optional)">
           <textarea className="textarea" {...register('improvementSuggestion')} />
         </Field>
       </div>
@@ -103,21 +110,21 @@ export function Section2({ form }) {
 
 // Section 3 — Maintenance & Cleanliness
 export function Section3({ form }) {
-  const { register, watch, setValue } = form;
+  const { register } = form;
   return (
     <div className="card">
       <SectionHeader step={3} title="Maintenance & Cleanliness" />
       <div className="grid gap-5">
         <RatingRow form={form} name="commonAreaCleanliness" label="Common areas cleanliness" />
-        <Field label="Maintenance resolution speed">
+        <Field label="Maintenance resolution speed" required error={err(form, 'maintenanceSpeed')}>
           <RadioGroup
             options={['Very Fast', 'Acceptable', 'Slow']}
-            value={watch('maintenanceSpeed')}
-            onChange={(v) => setValue('maintenanceSpeed', v)}
+            value={form.watch('maintenanceSpeed')}
+            onChange={(v) => setVal(form, 'maintenanceSpeed', v)}
             columns="grid-cols-3"
           />
         </Field>
-        <Field label="Recurring problems (water leakage, electricity, etc.)">
+        <Field label="Recurring problems — water leakage, electricity, etc. (optional)">
           <textarea className="textarea" {...register('recurringProblems')} />
         </Field>
       </div>
@@ -127,19 +134,11 @@ export function Section3({ form }) {
 
 // Section 4 — Facilities & Utilities
 export function Section4({ form }) {
-  const { watch, setValue } = form;
   return (
     <div className="card">
       <SectionHeader step={4} title="Facilities & Utilities" />
       <div className="grid gap-5 sm:grid-cols-2">
-        <Field label="Internet quality">
-          <RadioGroup
-            options={RATINGS_NA}
-            value={watch('internetQuality')}
-            onChange={(v) => setValue('internetQuality', v)}
-            columns="grid-cols-2 sm:grid-cols-3"
-          />
-        </Field>
+        <RatingRow form={form} name="internetQuality" label="Internet quality" options={RATINGS_NA} />
         <RatingRow form={form} name="powerBackup" label="Power backup sufficiency" />
         <RatingRow form={form} name="washroom" label="Washroom cleanliness & availability" />
         <RatingRow form={form} name="pantry" label="Pantry / kitchen adequacy" />
@@ -150,30 +149,30 @@ export function Section4({ form }) {
 
 // Section 5 — Noise & Environment
 export function Section5({ form }) {
-  const { watch, setValue, register } = form;
+  const { watch, register } = form;
   return (
     <div className="card">
       <SectionHeader step={5} title="Noise & Environment" />
-      <Field label="Disturbance from outside noise">
+      <Field label="Disturbance from outside noise" required error={err(form, 'noiseDisturbance')}>
         <RadioGroup
           options={['Never', 'Sometimes', 'Frequently']}
           value={watch('noiseDisturbance')}
-          onChange={(v) => setValue('noiseDisturbance', v)}
+          onChange={(v) => setVal(form, 'noiseDisturbance', v)}
           columns="grid-cols-3"
         />
       </Field>
       <div className="mt-5">
-        <Field label="Source of noise">
+        <Field label="Source of noise" required error={err(form, 'noiseSources')}>
           <CheckboxGroup
             options={['Traffic', 'Nearby shops', 'Construction', 'Other']}
             value={watch('noiseSources') || []}
-            onChange={(v) => setValue('noiseSources', v)}
+            onChange={(v) => setVal(form, 'noiseSources', v)}
           />
         </Field>
       </div>
       {(watch('noiseSources') || []).includes('Other') && (
         <div className="mt-3">
-          <Field label="Other source">
+          <Field label="Other source (optional)">
             <input className="input" {...register('noiseSourceOther')} />
           </Field>
         </div>
@@ -184,31 +183,31 @@ export function Section5({ form }) {
 
 // Section 6 — Safety & Behavior
 export function Section6({ form }) {
-  const { watch, setValue, register } = form;
+  const { watch, register } = form;
   return (
     <div className="card">
       <SectionHeader step={6} title="Safety & Behavior" />
-      <Field label="Anti-social behavior noticed?">
+      <Field label="Anti-social behavior noticed?" required error={err(form, 'antiSocialBehavior')}>
         <RadioGroup
           options={['No', 'Yes']}
           value={watch('antiSocialBehavior')}
-          onChange={(v) => setValue('antiSocialBehavior', v)}
+          onChange={(v) => setVal(form, 'antiSocialBehavior', v)}
           columns="grid-cols-2 max-w-xs"
         />
       </Field>
       {watch('antiSocialBehavior') === 'Yes' && (
         <div className="mt-4">
-          <Field label="Please describe">
+          <Field label="Please describe (optional)">
             <textarea className="textarea" {...register('antiSocialDetails')} />
           </Field>
         </div>
       )}
       <div className="mt-5">
-        <Field label="Comfortable during all business hours?">
+        <Field label="Comfortable during all business hours?" required error={err(form, 'comfortableAllHours')}>
           <RadioGroup
             options={['Yes', 'No']}
             value={watch('comfortableAllHours')}
-            onChange={(v) => setValue('comfortableAllHours', v)}
+            onChange={(v) => setVal(form, 'comfortableAllHours', v)}
             columns="grid-cols-2 max-w-xs"
           />
         </Field>
@@ -219,23 +218,23 @@ export function Section6({ form }) {
 
 // Section 7 — Location
 export function Section7({ form }) {
-  const { watch, setValue, register } = form;
+  const { watch, register } = form;
   return (
     <div className="card">
       <SectionHeader step={7} title="Location Feedback" />
       <RatingRow form={form} name="locationRating" label="Rate the location" />
       <div className="mt-5">
-        <Field label="Location challenges">
+        <Field label="Location challenges" required error={err(form, 'locationChallenges')}>
           <CheckboxGroup
             options={['Parking', 'Accessibility', 'Visibility', 'Other']}
             value={watch('locationChallenges') || []}
-            onChange={(v) => setValue('locationChallenges', v)}
+            onChange={(v) => setVal(form, 'locationChallenges', v)}
           />
         </Field>
       </div>
       {(watch('locationChallenges') || []).includes('Other') && (
         <div className="mt-3">
-          <Field label="Other challenge">
+          <Field label="Other challenge (optional)">
             <input className="input" {...register('locationChallengeOther')} />
           </Field>
         </div>
@@ -252,7 +251,7 @@ export function Section8({ form }) {
       <SectionHeader step={8} title="Staff Behavior" />
       <RatingRow form={form} name="staffBehavior" label="Staff behavior rating" />
       <div className="mt-5">
-        <Field label="Specific feedback about staff">
+        <Field label="Specific feedback about staff (optional)">
           <textarea className="textarea" {...register('staffFeedback')} />
         </Field>
       </div>
@@ -262,30 +261,30 @@ export function Section8({ form }) {
 
 // Section 9 — Rent & Value
 export function Section9({ form }) {
-  const { watch, setValue, register } = form;
+  const { watch, register } = form;
   return (
     <div className="card">
       <SectionHeader step={9} title="Rent & Value" />
-      <Field label="Rent justified for facilities?">
+      <Field label="Rent justified for facilities?" required error={err(form, 'rentJustified')}>
         <RadioGroup
           options={['Yes', 'No']}
           value={watch('rentJustified')}
-          onChange={(v) => setValue('rentJustified', v)}
+          onChange={(v) => setVal(form, 'rentJustified', v)}
           columns="grid-cols-2 max-w-xs"
         />
       </Field>
       <div className="mt-5">
-        <Field label="Compared to market, rent feels">
+        <Field label="Compared to market, rent feels" required error={err(form, 'rentVsMarket')}>
           <RadioGroup
             options={['High', 'Fair', 'Low']}
             value={watch('rentVsMarket')}
-            onChange={(v) => setValue('rentVsMarket', v)}
+            onChange={(v) => setVal(form, 'rentVsMarket', v)}
             columns="grid-cols-3"
           />
         </Field>
       </div>
       <div className="mt-5">
-        <Field label="What additional service would justify higher rent?">
+        <Field label="What additional service would justify higher rent? (optional)">
           <textarea className="textarea" {...register('justifyHigherRent')} />
         </Field>
       </div>
@@ -302,7 +301,7 @@ export function Section10({ form }) {
       <div className="grid gap-5">
         <RatingRow form={form} name="managementResponsiveness" label="Responsiveness when raising issues" />
         <RatingRow form={form} name="communicationClarity" label="Communication clarity & timeliness" />
-        <Field label="Suggestions to improve management support">
+        <Field label="Suggestions to improve management support (optional)">
           <textarea className="textarea" {...register('managementSuggestions')} />
         </Field>
       </div>
@@ -312,40 +311,40 @@ export function Section10({ form }) {
 
 // Section 11 — Future Needs & Expansion
 export function Section11({ form }) {
-  const { watch, setValue, register } = form;
+  const { watch, register } = form;
   return (
     <div className="card">
       <SectionHeader step={11} title="Future Needs & Expansion" />
-      <Field label="Plan to continue for the next 6–12 months?">
+      <Field label="Plan to continue for the next 6–12 months?" required error={err(form, 'continuePlan')}>
         <RadioGroup
           options={['Yes', 'No', 'Not Sure']}
           value={watch('continuePlan')}
-          onChange={(v) => setValue('continuePlan', v)}
+          onChange={(v) => setVal(form, 'continuePlan', v)}
           columns="grid-cols-3"
         />
       </Field>
       <div className="mt-5">
-        <Field label="Future office size">
+        <Field label="Future office size" required error={err(form, 'futureSpaceSize')}>
           <RadioGroup
             options={['Bigger', 'Same', 'Smaller']}
             value={watch('futureSpaceSize')}
-            onChange={(v) => setValue('futureSpaceSize', v)}
+            onChange={(v) => setVal(form, 'futureSpaceSize', v)}
             columns="grid-cols-3"
           />
         </Field>
       </div>
       <div className="mt-5">
-        <Field label="Additional services needed">
+        <Field label="Additional services needed" required error={err(form, 'additionalServices')}>
           <CheckboxGroup
             options={['Meeting Rooms', 'Reception Services', 'Storage Space', 'Parking', 'Other']}
             value={watch('additionalServices') || []}
-            onChange={(v) => setValue('additionalServices', v)}
+            onChange={(v) => setVal(form, 'additionalServices', v)}
           />
         </Field>
       </div>
       {(watch('additionalServices') || []).includes('Other') && (
         <div className="mt-3">
-          <Field label="Other service">
+          <Field label="Other service (optional)">
             <input className="input" {...register('additionalServicesOther')} />
           </Field>
         </div>
@@ -359,7 +358,7 @@ export function Section12({ form }) {
   const { register } = form;
   return (
     <div className="card">
-      <SectionHeader step={12} title="Open Feedback" />
+      <SectionHeader step={12} title="Open Feedback" subtitle="All three questions are optional." />
       <div className="grid gap-5">
         <Field label="What do you LIKE most?">
           <textarea className="textarea" {...register('likeMost')} />
@@ -377,15 +376,15 @@ export function Section12({ form }) {
 
 // Section 13 — Upgrade Interest
 export function Section13({ form }) {
-  const { watch, setValue } = form;
+  const { watch } = form;
   return (
     <div className="card">
       <SectionHeader step={13} title="Upgrade Interest" />
-      <Field label="If we upgrade interiors/services, willing to pay higher rent?">
+      <Field label="If we upgrade interiors/services, willing to pay higher rent?" required error={err(form, 'upgradeWillingness')}>
         <RadioGroup
           options={['Yes', 'Maybe', 'No']}
           value={watch('upgradeWillingness')}
-          onChange={(v) => setValue('upgradeWillingness', v)}
+          onChange={(v) => setVal(form, 'upgradeWillingness', v)}
           columns="grid-cols-3"
         />
       </Field>
@@ -409,17 +408,17 @@ export const SECTION_TITLES = [
 ];
 
 export const STEP_FIELDS = [
-  ['satisfactionScore', 'wouldRecommend', 'recommendReason'],
-  ['officeSize', 'furnitureComfort', 'infraIssues', 'improvementSuggestion'],
-  ['commonAreaCleanliness', 'maintenanceSpeed', 'recurringProblems'],
+  ['satisfactionScore', 'wouldRecommend'],
+  ['officeSize', 'furnitureComfort'],
+  ['commonAreaCleanliness', 'maintenanceSpeed'],
   ['internetQuality', 'powerBackup', 'washroom', 'pantry'],
-  ['noiseDisturbance', 'noiseSources', 'noiseSourceOther'],
-  ['antiSocialBehavior', 'antiSocialDetails', 'comfortableAllHours'],
-  ['locationRating', 'locationChallenges', 'locationChallengeOther'],
-  ['staffBehavior', 'staffFeedback'],
-  ['rentJustified', 'rentVsMarket', 'justifyHigherRent'],
-  ['managementResponsiveness', 'communicationClarity', 'managementSuggestions'],
-  ['continuePlan', 'futureSpaceSize', 'additionalServices', 'additionalServicesOther'],
-  ['likeMost', 'dislikeMost', 'ownerChange'],
+  ['noiseDisturbance', 'noiseSources'],
+  ['antiSocialBehavior', 'comfortableAllHours'],
+  ['locationRating', 'locationChallenges'],
+  ['staffBehavior'],
+  ['rentJustified', 'rentVsMarket'],
+  ['managementResponsiveness', 'communicationClarity'],
+  ['continuePlan', 'futureSpaceSize', 'additionalServices'],
+  [],
   ['upgradeWillingness'],
 ];
