@@ -3,6 +3,22 @@ import { repo } from '../repository.js';
 import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
+
+// One-time seed endpoint — protected by a token from env. Hit it once from the browser,
+// then remove SEED_TOKEN from env (or leave it — it's a no-op until called).
+router.get('/seed', async (req, res) => {
+  const token = process.env.SEED_TOKEN;
+  if (!token || req.query.token !== token) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  const existing = await repo.list();
+  if (existing.length > 0) await repo.replaceAll([]);
+  const { makeSeedRows } = await import('../seedData.js');
+  const rows = makeSeedRows();
+  for (const r of rows) await repo.create(r);
+  res.json({ ok: true, inserted: rows.length });
+});
+
 router.use(requireAuth);
 
 router.get('/responses', async (req, res) => {
